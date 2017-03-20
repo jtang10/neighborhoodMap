@@ -9,3 +9,10 @@ body {
 #map {
     height: 100%;
 }
+
+#mapTitle {
+    position: fixed;
+    top: 0px;
+    left: 5%;
+    font-weight: 700;
+}
