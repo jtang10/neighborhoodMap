@@ -16,3 +16,24 @@ body {
     left: 5%;
     font-weight: 700;
 }
+
+#searchbar {
+    position: fixed;
+    top: 60px;
+    left: 5%;
+    width: 21%;
+}
+
+#search-input {
+    position: absolute;
+    width: 100%;
+}
+
+#restaurant-List {
+    position: relative;
+    background-color: #fff;
+    top: 40px;
+    list-style-type: none;
+    padding: 0;
+    margin: 1px;
+}
