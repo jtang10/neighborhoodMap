@@ -69,6 +69,46 @@ var Restaurant = function(data) {
     this.id = ko.observable(data.id);
 }
 
+var YelpAPI = function(i) {
+    function nonce_generate() {
+        return(Math.floor(Math.random() * 1e12).toString());
+    }
+
+    var yelp_url = 'https://api.yelp.com/v2/business/' + Restaurant；
+
+    var YELP_KEY = 'B9ymBjC2WE00WOsAZoNt2Q',
+        YELP_KEY_SECRET = 'zZ8Q2IdeGJijD16F4Z_Bh8NxR4s',
+        YELP_TOKEN = 'VJh8RhLzka23z7qAcJfK1o7vsYMCnrV1',
+        YELP_TOKEN_SECRET = 'GBCUKxLdCP5LBAigCDzvlBRny0w';
+
+    var parameters = {
+        oauth_consumer_key: YELP_KEY,
+        oauth_token: YELP_TOKEN,
+        oauth_nonce: nonce_generate(),
+        oauth_timestamp: Math.floor(Date.now() / 1000),
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_version: '1.0',
+        callback: 'cb'
+    };
+
+    var encodedSignature = oauthSignature.generate('GET', yelp_url, parameters, YELP_KEY_SECRET, YELP_TOKEN_SECRET);
+    parameters.oauth_signature = encodedSignature;
+
+    var settings = {
+        url: yelp_url,
+        data: parameters,
+        cache: true,
+        dataType: 'jsonp',
+
+        success: function(results) {
+
+        },
+        error: function() {
+
+        }
+    };
+
+}
 //Initialize ViewModel
 var ViewModel = function() {
     var self = this;
