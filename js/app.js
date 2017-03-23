@@ -74,7 +74,7 @@ var YelpAPI = function(restaurantItem) {
         return(Math.floor(Math.random() * 1e12).toString());
     }
 
-    var yelp_url = 'https://api.yelp.com/v2/business/tanta-chicago';
+    var yelp_url = 'https://api.yelp.com/v2/business/' + restaurantItem.id();
 
     var YELP_KEY = 'B9ymBjC2WE00WOsAZoNt2Q',
         YELP_KEY_SECRET = 'zZ8Q2IdeGJijD16F4Z_Bh8NxR4s',
@@ -103,7 +103,7 @@ var YelpAPI = function(restaurantItem) {
         success: function(results) {
             restaurantItem.result = results;
             restaurantItem.rating = results.rating_img_url;
-            restaurantItem.review = results.snippet_text;
+            restaurantItem.image = results.image_url;
             restaurantItem.review_count = results.review_count;
         },
         error: function() {
@@ -139,11 +139,14 @@ var ViewModel = function() {
         YelpAPI(restaurantItem);
 
         google.maps.event.addListener(restaurantItem.marker, 'click', function() {
-            infoWindow.open(map, marker);
-            var content = '<h3>' + restaurantItem.title() + '</h3>' +
-                          '<h3>Rating:</h3>' + '<img src=' + restaurantItem.rating + '>' +
-                          '<h3>Review Counts:' + restaurantItem.review_count + '</h3>';
+
+            infoWindow.open(map, restaurantItem.marker);
+            var content = '<a href="https://www.yelp.com/biz/'+ restaurantItem.id() + '">' + restaurantItem.title() + '</a>' +
+                          '<img src="' + restaurantItem.image + '">' +
+                          '<h4>Rating:</h4>' + '<img src="' + restaurantItem.rating + '">' +
+                          '<h4>Review Counts:' + restaurantItem.review_count + '</h4>';
             infoWindow.setContent(content);
+
             //infoWindow.setContent('<div>' + marker.title + '</div>');
             // Make sure the marker property is cleared if the infoWindow is closed.
         });
