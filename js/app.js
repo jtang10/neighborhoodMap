@@ -69,12 +69,12 @@ var Restaurant = function(data) {
     this.id = ko.observable(data.id);
 }
 
-var YelpAPI = function(i) {
+var YelpAPI = function(restaurantItem) {
     function nonce_generate() {
         return(Math.floor(Math.random() * 1e12).toString());
     }
 
-    var yelp_url = 'https://api.yelp.com/v2/business/' + Restaurant；
+    var yelp_url = 'https://api.yelp.com/v2/business/tanta-chicago';
 
     var YELP_KEY = 'B9ymBjC2WE00WOsAZoNt2Q',
         YELP_KEY_SECRET = 'zZ8Q2IdeGJijD16F4Z_Bh8NxR4s',
@@ -101,13 +101,17 @@ var YelpAPI = function(i) {
         dataType: 'jsonp',
 
         success: function(results) {
-
+            restaurantItem.result = results;
+            restaurantItem.rating = results.rating_img_url;
+            restaurantItem.review = results.snippet_text;
+            restaurantItem.review_count = results.review_count;
         },
         error: function() {
-
+            window.alert("The API call failed. Please contact admin to fix the bug");
         }
     };
 
+    $.ajax(settings);
 }
 //Initialize ViewModel
 var ViewModel = function() {
@@ -132,22 +136,21 @@ var ViewModel = function() {
             animation: google.maps.Animation.DROP
         });
         restaurantItem.marker = marker;
+        YelpAPI(restaurantItem);
 
-        marker.addListener('click', function() {
-            populateInfoWindow(this, infoWindow);
+        google.maps.event.addListener(restaurantItem.marker, 'click', function() {
+            infoWindow.open(map, marker);
+            var content = '<h3>' + restaurantItem.title() + '</h3>' +
+                          '<h3>Rating:</h3>' + '<img src=' + restaurantItem.rating + '>' +
+                          '<h3>Review Counts:' + restaurantItem.review_count + '</h3>';
+            infoWindow.setContent(content);
+            //infoWindow.setContent('<div>' + marker.title + '</div>');
+            // Make sure the marker property is cleared if the infoWindow is closed.
         });
     });
 
     function populateInfoWindow(marker, infoWindow) {
-        if (infoWindow.marker != marker) {
-            infoWindow.marker = marker;
-            infoWindow.setContent('<div>' + marker.title + '</div>');
-            infoWindow.open(map, marker);
-            // Make sure the marker property is cleared if the infoWindow is closed.
-            infoWindow.addListener('closeclick', function() {
-                infoWindow.marker = null;
-            });
-        }
+
     }
 
     self.search = ko.computed(function() {
