@@ -101,9 +101,10 @@ var YelpAPI = function(restaurantItem) {
         dataType: 'jsonp',
 
         success: function(results) {
+            //retrieve the restaurant rating and category.
             restaurantItem.result = results;
             restaurantItem.rating = results.rating_img_url;
-            restaurantItem.image = results.image_url;
+            restaurantItem.categories = results.categories;
             restaurantItem.review_count = results.review_count;
         },
         error: function() {
@@ -129,6 +130,7 @@ var ViewModel = function() {
 
     //
     self.restaurantList().forEach(function (restaurantItem) {
+        //Make a new marker for each restaurant.
         marker = new google.maps.Marker({
             position: new google.maps.LatLng(restaurantItem.lat(), restaurantItem.lng()),
             map: map,
@@ -136,26 +138,34 @@ var ViewModel = function() {
             animation: google.maps.Animation.DROP
         });
         restaurantItem.marker = marker;
+        //Call the API to get all the yelp results.
         YelpAPI(restaurantItem);
 
+        //populate the infoWindow with all the information retrieved.
         google.maps.event.addListener(restaurantItem.marker, 'click', function() {
 
+            //Set the infoWindow content with link to the yelp page, review and review counts.
             infoWindow.open(map, restaurantItem.marker);
-            var content = '<a href="https://www.yelp.com/biz/'+ restaurantItem.id() + '">' + restaurantItem.title() + '</a>' +
-                          '<img src="' + restaurantItem.image + '">' +
-                          '<h4>Rating:</h4>' + '<img src="' + restaurantItem.rating + '">' +
-                          '<h4>Review Counts:' + restaurantItem.review_count + '</h4>';
+            var content = '<a id="yelp-title" href="https://www.yelp.com/biz/'+ restaurantItem.id() + '">' + restaurantItem.title() + '</a>' +
+                          '<p id="restaurant-category">' + restaurantItem.categories[0][0] + '</p>' +
+                          '<h4 id="ylp-review-title">Rating:</h4>' + '<img id="ylp-review" src="' + restaurantItem.rating + '">' +
+                          '<h4 id="ylp-review-count">Review Counts:' + restaurantItem.review_count + '</h4>';
             infoWindow.setContent(content);
-
-            //infoWindow.setContent('<div>' + marker.title + '</div>');
-            // Make sure the marker property is cleared if the infoWindow is closed.
+            //Set the map center to the marker and bounce to highlight the marker.
+            map.setCenter(restaurantItem.marker.position);
+            if (restaurantItem.marker.getAnimation() !== null) {
+                    restaurantItem.marker.setAnimation(null);
+                }
+            else {
+                restaurantItem.marker.setAnimation(google.maps.Animation.BOUNCE);
+                setTimeout(function() {
+                    restaurantItem.marker.setAnimation(null);
+                }, 1500);
+            }
         });
     });
 
-    function populateInfoWindow(marker, infoWindow) {
-
-    }
-
+    //Add the search function
     self.search = ko.computed(function() {
         var filteredPlace = self.filteredPlace().toLowerCase();
         if (!filteredPlace) {
@@ -168,20 +178,13 @@ var ViewModel = function() {
         }
         else {
             return ko.utils.arrayFilter(self.restaurantList(), function(restaurantItem) {
+                //search the input in every entry. If found one (indexOf return value is not -1), set it as visible
                 var match = restaurantItem.title().toLowerCase().indexOf(filteredPlace) !== -1;
                 restaurantItem.marker.setVisible(match);
-                //self.closeInfoWindow();
+                infoWindow.close();
                 return match;
             });
         }
     });
-
-    self.showMarker = function(restaurantItem) {
-        google.maps.event.trigger(restaurantItem.marker, 'click');
-    };
-
-    self.closeInfoWindow = function() {
-        infowindow.close();
-    };
 }
 

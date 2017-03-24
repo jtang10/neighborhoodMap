@@ -37,3 +37,18 @@ body {
     padding: 0;
     margin: 1px;
 }
+
+#yelp-title {
+    font-size: 160%;
+}
+
+#yelp-review-title {
+    position: fixed;
+    top: 80px;
+}
+
+#yelp-review {
+    position: relative;
+    top: 120px;
+    left: 50px;
+}
