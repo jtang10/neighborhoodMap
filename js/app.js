@@ -48,7 +48,7 @@ var locations = [
         lng: -87.629948,
         id: 'rpm-italian-chicago'
     }
-]
+];
 
 //Initialized the map with a marker on Olive Park
 var map;
@@ -61,12 +61,8 @@ function initMap() {
     ko.applyBindings(new ViewModel());
 }
 
-//Restaurant constructor
-var Restaurant = function(data) {
-    this.title = ko.observable(data.title);
-    this.lat = ko.observable(data.lat);
-    this.lng = ko.observable(data.lng);
-    this.id = ko.observable(data.id);
+function mapError() {
+    window.alert("Google Map not loading. Please try again.");
 }
 
 var YelpAPI = function(restaurantItem) {
@@ -74,7 +70,7 @@ var YelpAPI = function(restaurantItem) {
         return(Math.floor(Math.random() * 1e12).toString());
     }
 
-    var yelp_url = 'https://api.yelp.com/v2/business/' + restaurantItem.id();
+    var yelp_url = 'https://api.yelp.com/v2/business/' + restaurantItem.id;
 
     var YELP_KEY = 'B9ymBjC2WE00WOsAZoNt2Q',
         YELP_KEY_SECRET = 'zZ8Q2IdeGJijD16F4Z_Bh8NxR4s',
@@ -102,10 +98,12 @@ var YelpAPI = function(restaurantItem) {
 
         success: function(results) {
             //retrieve the restaurant rating and category.
-            restaurantItem.result = results;
-            restaurantItem.rating = results.rating_img_url;
-            restaurantItem.categories = results.categories;
-            restaurantItem.review_count = results.review_count;
+            results.rating_img_url !== undefined ? restaurantItem.rating = results.rating_img_url : restaurantItem.rating = '';
+            results.categories !== undefined ? restaurantItem.categories = results.categories : restaurantItem.categories = [];
+            results.review_count !== undefined ? restaurantItem.review_count = results.review_count : restaurantItem.review_count = 0;
+            //restaurantItem.rating = results.rating_img_url;
+            //restaurantItem.categories = results.categories;
+            //restaurantItem.review_count = results.review_count;
         },
         error: function() {
             window.alert("The API call failed. Please contact admin to fix the bug");
@@ -113,7 +111,8 @@ var YelpAPI = function(restaurantItem) {
     };
 
     $.ajax(settings);
-}
+};
+
 //Initialize ViewModel
 var ViewModel = function() {
     var self = this;
@@ -122,19 +121,14 @@ var ViewModel = function() {
         maxWidth: 200,
     });
     self.filteredPlace = ko.observable('');
-    self.restaurantList = ko.observableArray([]);
+    self.restaurantList = ko.observableArray(locations);
 
-    locations.forEach(function(restaurantItem) {
-        self.restaurantList.push(new Restaurant(restaurantItem));
-    });
-
-    //
     self.restaurantList().forEach(function (restaurantItem) {
         //Make a new marker for each restaurant.
         marker = new google.maps.Marker({
-            position: new google.maps.LatLng(restaurantItem.lat(), restaurantItem.lng()),
+            position: new google.maps.LatLng(restaurantItem.lat, restaurantItem.lng),
             map: map,
-            title: restaurantItem.title(),
+            title: restaurantItem.title,
             animation: google.maps.Animation.DROP
         });
         restaurantItem.marker = marker;
@@ -146,7 +140,7 @@ var ViewModel = function() {
 
             //Set the infoWindow content with link to the yelp page, review and review counts.
             infoWindow.open(map, restaurantItem.marker);
-            var content = '<a id="yelp-title" href="https://www.yelp.com/biz/'+ restaurantItem.id() + '">' + restaurantItem.title() + '</a>' +
+            var content = '<a id="yelp-title" href="https://www.yelp.com/biz/'+ restaurantItem.id + '">' + restaurantItem.title + '</a>' +
                           '<p id="restaurant-category">' + restaurantItem.categories[0][0] + '</p>' +
                           '<h4 id="ylp-review-title">Rating:</h4>' + '<img id="ylp-review" src="' + restaurantItem.rating + '">' +
                           '<h4 id="ylp-review-count">Review Counts:' + restaurantItem.review_count + '</h4>';
@@ -160,7 +154,7 @@ var ViewModel = function() {
                 restaurantItem.marker.setAnimation(google.maps.Animation.BOUNCE);
                 setTimeout(function() {
                     restaurantItem.marker.setAnimation(null);
-                }, 1500);
+                }, 1400);
             }
         });
     });
@@ -179,12 +173,16 @@ var ViewModel = function() {
         else {
             return ko.utils.arrayFilter(self.restaurantList(), function(restaurantItem) {
                 //search the input in every entry. If found one (indexOf return value is not -1), set it as visible
-                var match = restaurantItem.title().toLowerCase().indexOf(filteredPlace) !== -1;
+                var match = restaurantItem.title.toLowerCase().indexOf(filteredPlace) !== -1;
                 restaurantItem.marker.setVisible(match);
                 infoWindow.close();
                 return match;
             });
         }
     });
-}
+
+    self.showMarker = function(restaurantItem) {
+         google.maps.event.trigger(restaurantItem.marker, 'click');
+    };
+};
 
